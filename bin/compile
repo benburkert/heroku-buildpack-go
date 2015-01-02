@@ -88,12 +88,13 @@ then
 else
     rm -rf $cache/* # be sure not to build up cruft
     mkdir -p $cache/$ver
-    cd $cache/$ver
+    pushd $cache/$ver
     echo -n "-----> Installing $ver..."
     curl -sO $url
     tar zxf $file
     rm -f $file
     echo " done"
+    popd
 fi
 
 mkdir -p $build/bin
@@ -102,6 +103,9 @@ GOROOT=$cache/$ver/go export GOROOT
 GOPATH=$build/.heroku/g export GOPATH
 PATH=$GOROOT/bin:$PATH
 
+# export go env & PATH for later multi-buildpacks
+go env | sed 's/^/export /' > export
+echo "export PATH=$PATH" >> export
 
 if ! (test -d $build/Godeps || (which hg >/dev/null && which bzr >/dev/null))
 then
